@@ -1,8 +1,8 @@
 import esbuild from 'esbuild'
-import { deleteSync } from 'del'
 import fs from 'node:fs/promises'
+import { rmSync } from 'node:fs'
 import path from 'node:path'
-import vite from 'vite'
+import { build as viteBuild } from 'vite'
 
 
 enum BuildTarget {
@@ -23,14 +23,14 @@ async function main() {
     
     const distPath = path.join('dist', target)
     
-    deleteSync(distPath)
+    rmSync(distPath, { recursive: true, force: true })
 
 
 
 
     await Promise.all([
-        vite.build({ configFile: 'vite.config.ts', clearScreen: false }),
-        vite.build({ configFile: 'vite.devtools.config.ts', clearScreen: false })
+        viteBuild({ configFile: 'vite.config.ts', clearScreen: false }),
+        viteBuild({ configFile: 'vite.devtools.config.ts', clearScreen: false })
     ])
 
     await Promise.all([

@@ -7,7 +7,7 @@ export type NetRequest = browser.devtools.network.Request & HarEntry
 
 
 function isContentType(entry: NetRequest, contentType: string) {
-  return entry.request.headers.some(({ name, value }) => {
+  return entry.request.headers.some(({ name, value }: { name: string, value: string }) => {
     return name.toLowerCase() === 'content-type' && value.split(';')[0].toLowerCase() === contentType.toLowerCase();
   });
 }

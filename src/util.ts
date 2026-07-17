@@ -1,6 +1,6 @@
 import { Kind } from "graphql";
 import { Entry } from "har-format";
-import create from "zustand";
+import { create } from "zustand";
 import { GQLRequest } from "./gql";
 
 
@@ -63,7 +63,7 @@ export const CLEAR_ON_NAV_KEY = 'clear-on-nav'
 async function getClearOnNavFromStore(): Promise<boolean> {
     if (isInWebExt()) {
         const browser = (await import('webextension-polyfill')).default
-        return browser.storage.local.get(CLEAR_ON_NAV_KEY).then(st => st[CLEAR_ON_NAV_KEY] ?? true)
+        return browser.storage.local.get(CLEAR_ON_NAV_KEY).then((st: Record<string, unknown>) => st[CLEAR_ON_NAV_KEY] ?? true)
     } else {
         return localStorage.getItem(CLEAR_ON_NAV_KEY) === 'true'
     }
