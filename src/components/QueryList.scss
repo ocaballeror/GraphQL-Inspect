@@ -27,6 +27,16 @@
                     & > .ant-table-container {
                         height: 100%;
                         overflow: hidden;
+                        display: flex;
+                        flex-direction: column;
+
+                        & > .ant-table-header {
+                            flex: none;
+                        }
+                        & > .ant-table-body {
+                            flex: 1;
+                            min-height: 0;
+                        }
                     }
                 }
             }
