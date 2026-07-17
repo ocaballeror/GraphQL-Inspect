@@ -1,5 +1,5 @@
 import { Entry as HarEntry, Param } from 'har-format'
-import { ArgumentNode, DocumentNode, Kind, parse, SelectionNode, SelectionSetNode, ValueNode } from 'graphql'
+import { ArgumentNode, DocumentNode, FragmentArgumentNode, Kind, parse, SelectionNode, SelectionSetNode, ValueNode } from 'graphql'
 import { GQLRequest } from '.';
 
 /**
@@ -116,7 +116,7 @@ function getValue(value: ValueNode): any {
   }
 }
 
-function parseArguments(arr: readonly ArgumentNode[]) {
+function parseArguments(arr: readonly (ArgumentNode | FragmentArgumentNode)[]) {
   return arr.filter(x => x.name).map(x => ({
     name: x.name.value,
     value: getValue(x.value),
