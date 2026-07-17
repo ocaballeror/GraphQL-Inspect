@@ -11,7 +11,7 @@ export const PanelBar = (props: { onClear: () => void }) => {
     } = useAppState()
 
     return <div className="panel-bar">
-        <Button onClick={props.onClear} icon={<DeleteFilled />}>
+        <Button size="small" onClick={props.onClear} icon={<DeleteFilled />}>
         </Button>
         <Dropdown
             className='settings-btn'
@@ -23,7 +23,7 @@ export const PanelBar = (props: { onClear: () => void }) => {
                         key: 'clear-on-nav',
                         label: (
                             <div className='clear-on-nav'>
-                                <Switch checked={clearOnNav} onChange={() => setClearOnNav(!clearOnNav)} />
+                                <Switch size="small" checked={clearOnNav} onChange={() => setClearOnNav(!clearOnNav)} />
                                 <label>Clear on Navigation</label>
                             </div>
                         ),
@@ -32,7 +32,7 @@ export const PanelBar = (props: { onClear: () => void }) => {
                 ]
             }}
         >
-            <Button icon={<SettingFilled />}>
+            <Button size="small" icon={<SettingFilled />}>
             </Button>
         </Dropdown>
     </div>
