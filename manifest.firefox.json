@@ -2,19 +2,19 @@
     "manifest_version": 2,
     "name": "GraphQL-Inspect",
     "description": "Inspect GraphQL requests and response data",
-    "version": "0.1.1",
+    "version": "1.0.0",
     "icons": {
-      "128": "icons/icon.png"
+        "128": "icons/icon.png"
     },
     "author": "Matthias Kind",
     "homepage_url": "https://github.com/lokmeinmatz/GraphQL-Inspect",
     "devtools_page": "devtools.html",
     "permissions": [
-      "storage"
+        "storage"
     ],
     "browser_specific_settings": {
-      "gecko": {
-        "id": "graphql-inspect@lokmeinmatz"
-      }
+        "gecko": {
+            "id": "graphql-inspect@lokmeinmatz"
+        }
     }
-  }
+}
