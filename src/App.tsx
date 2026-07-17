@@ -27,8 +27,12 @@ export default (props: { gqlStore: GraphQLRequestStore }) => {
     return (
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { borderRadius: 0 } }}>
             <main>
-                <PanelBar onClear={() => props.gqlStore.clearAll()} />
-                <QueryList queries={queries} onSelect={setSelectedQuery} selectedQuery={selectedQuery} />
+                <QueryList
+                    queries={queries}
+                    onSelect={setSelectedQuery}
+                    selectedQuery={selectedQuery}
+                    headerExtra={<PanelBar onClear={() => props.gqlStore.clearAll()} />}
+                />
                 {
                     selectedQuery && <QueryDetails query={selectedQuery} onClose={() => setSelectedQuery(undefined)} />
                 }

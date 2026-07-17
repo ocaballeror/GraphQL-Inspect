@@ -6,17 +6,64 @@ import './QueryDetails.scss'
 import { useWindowSize } from "react-use";
 import ReactJson from '@microlink/react-json-view';
 import { findOperation, fmtTime, getSizeStr } from "../util";
-import { useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {UnControlled as CodeMirror} from 'react-codemirror2'
 import { EditorConfiguration } from 'codemirror'
 import 'codemirror-graphql/mode';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/twilight.css';
 
+// Keeps the query list from being fully covered when this panel is resized.
+const MIN_SIDEBAR_SIZE = 300
+
 export const QueryDetails = (props: { query: GQLRequest, onClose: () => void }) => {
 
     const { width, height } = useWindowSize()
     const onBottom = width < height
+
+    const [size, setSize] = useState<number | undefined>(undefined)
+    const cleanupDrag = useRef<(() => void) | undefined>(undefined)
+
+    // A pixel size measured along one axis doesn't carry over when the panel
+    // flips between docking on the side vs. the bottom.
+    const prevOnBottom = useRef(onBottom)
+    useEffect(() => {
+        if (prevOnBottom.current !== onBottom) {
+            prevOnBottom.current = onBottom
+            setSize(undefined)
+        }
+    }, [onBottom])
+
+    useEffect(() => {
+        setSize(prev => {
+            if (prev === undefined) return prev
+            const max = (onBottom ? height : width) - MIN_SIDEBAR_SIZE
+            return prev > max ? Math.max(MIN_SIDEBAR_SIZE, max) : prev
+        })
+    }, [width, height, onBottom])
+
+    useEffect(() => () => cleanupDrag.current?.(), [])
+
+    const startResize = (e: React.MouseEvent) => {
+        e.preventDefault()
+
+        const onMouseMove = (moveEvent: MouseEvent) => {
+            const raw = onBottom
+                ? window.innerHeight - moveEvent.clientY
+                : window.innerWidth - moveEvent.clientX
+            const max = (onBottom ? window.innerHeight : window.innerWidth) - MIN_SIDEBAR_SIZE
+            setSize(Math.min(Math.max(raw, MIN_SIDEBAR_SIZE), max))
+        }
+        const onMouseUp = () => cleanupDrag.current?.()
+
+        window.addEventListener('mousemove', onMouseMove)
+        window.addEventListener('mouseup', onMouseUp)
+        cleanupDrag.current = () => {
+            window.removeEventListener('mousemove', onMouseMove)
+            window.removeEventListener('mouseup', onMouseUp)
+            cleanupDrag.current = undefined
+        }
+    }
 
     const title = useMemo(() => {
         const op = findOperation(props.query.data)
@@ -37,7 +84,11 @@ export const QueryDetails = (props: { query: GQLRequest, onClose: () => void }) 
         theme: 'twilight'
     }
 
-    return <aside className={cls('query-details', { vertical: !onBottom, horizontal: onBottom })}>
+    return <aside
+        className={cls('query-details', { vertical: !onBottom, horizontal: onBottom })}
+        style={size === undefined ? undefined : (onBottom ? { height: size } : { width: size })}
+    >
+        <div className="query-details__resize-handle" onMouseDown={startResize} />
         <div className="query-details__controls">
             <h1>{ title }</h1>
             <Button onClick={props.onClose} icon={<CloseOutlined />} style={{ backgroundColor: '#111' }}>

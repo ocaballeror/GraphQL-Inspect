@@ -1,7 +1,7 @@
 import { Table } from "antd"
 import { ColumnsType } from "antd/lib/table"
 import { Kind } from "graphql"
-import { useEffect, useRef } from "react"
+import { ReactNode, useEffect, useRef } from "react"
 import { GQLRequest } from "../gql"
 import { findOperation, fmtTime, getSizeStr } from "../util"
 import './QueryList.scss'
@@ -11,7 +11,8 @@ import './QueryList.scss'
 export const QueryList = (props: {
     queries: GQLRequest[],
     onSelect: (selection: GQLRequest | undefined) => any,
-    selectedQuery?: GQLRequest
+    selectedQuery?: GQLRequest,
+    headerExtra?: ReactNode
 }) => {
     const containerRef = useRef<HTMLDivElement>(null)
     // Only auto-follow new rows while the user is already near the bottom,
@@ -37,7 +38,10 @@ export const QueryList = (props: {
 
     const cols: ColumnsType<object> = [
         {
-            title: 'Query Name',
+            title: <div className="query-list__header">
+                <span>Query Name</span>
+                {props.headerExtra}
+            </div>,
             dataIndex: ['data'],
             render: (data: GQLRequest['data']) => {
                 const op = findOperation(data)
