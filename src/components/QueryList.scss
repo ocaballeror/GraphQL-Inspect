@@ -65,6 +65,10 @@
             text-align: end;
         }
     }
+
+    & .ant-table-thead > tr > th.ant-table-cell {
+        padding: 4px 8px;
+    }
 }
 
 // Rendered in a portal on document.body, so these live outside .query-list.

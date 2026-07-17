@@ -23,8 +23,10 @@ export const getSizeStr = (res: Entry['response']) => {
     return `${(res.content.size / 1024).toFixed(1)}kB`
 }
 
-// curl doesn't accept HTTP/2 pseudo-headers, and computes content-length/host itself
-const CURL_SKIP_HEADERS = new Set(['content-length', 'host'])
+// curl doesn't accept HTTP/2 pseudo-headers, and computes content-length/host itself.
+// accept-encoding is also skipped since curl needs `--compressed` (not this header) to
+// auto-decompress the response, otherwise it prints the raw gzip/br bytes.
+const CURL_SKIP_HEADERS = new Set(['content-length', 'host', 'accept-encoding'])
 
 const shellQuote = (value: string) => `'${value.replace(/'/g, `'\\''`)}'`
 
@@ -38,7 +40,7 @@ const requestBodyText = (postData?: PostData) => {
 
 export const buildCurlCommand = (req: GQLRequest) => {
     const { request } = req
-    const parts = [`curl ${shellQuote(request.url)}`]
+    const parts = [`curl ${shellQuote(request.url)}`, '--compressed']
 
     if (request.method && request.method.toUpperCase() !== 'GET') {
         parts.push(`-X ${request.method}`)

@@ -12,7 +12,7 @@
         top: 0;
         bottom: 0;
         right: 0;
-        width: 70vw;
+        width: 75vw;
         border-left: 1px solid rgba(255, 255, 255, 0.15);
 
         & > .query-details__resize-handle {
@@ -54,9 +54,11 @@
         grid-template-columns: auto min-content;
         background-color: #222;
         align-items: center;
+        padding: 0;
 
         & h1 {
-            font-size: 15px;
+            font-size: 13px;
+            line-height: 1;
             height: max-content;
             margin: 0 0.4em;
             color: rgba(255, 255, 255, 0.85);

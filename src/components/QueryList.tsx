@@ -4,7 +4,7 @@ import { ColumnsType } from "antd/lib/table"
 import { CopyOutlined } from "@ant-design/icons"
 import { ReactNode, useEffect, useRef, useState } from "react"
 import { GQLRequest } from "../gql"
-import { buildCurlCommand, findOperation, fmtTime, getSizeStr } from "../util"
+import { buildCurlCommand, findOperation, getSizeStr } from "../util"
 import './QueryList.scss'
 
 // Thresholds (ms) separating quick/mid/slow queries for the speed indicator.
@@ -89,6 +89,7 @@ export const QueryList = (props: {
         {
             title: 'Query Name',
             dataIndex: ['data'],
+            onCell: (record: GQLRequest) => ({ title: `${record.time.toFixed(0)}ms` }),
             render: (data: GQLRequest['data']) => {
                 const op = findOperation(data)
                 return `${op?.operations[0].type} ${op?.name}`
@@ -101,7 +102,7 @@ export const QueryList = (props: {
         {
             title: 'Time',
             width: 100,
-            render: (entry: GQLRequest) => (fmtTime(new Date(entry.startedDateTime), { withMs: false }))
+            render: (entry: GQLRequest) => `${(entry.time / 1000).toFixed(3)}s`
         },
         {
             title: 'Sizes (kB)',
@@ -119,6 +120,7 @@ export const QueryList = (props: {
             pagination={false}
             sticky={true}
             scroll={{ y: '100%'}}
+            locale={{ emptyText: 'No queries captured yet' }}
             onRow={(record: GQLRequest) => {
                 const classes = [speedClass(record.time)]
                 if (record.id == props.selectedQuery?.id) classes.push('selected')

@@ -21,7 +21,9 @@ export const QueryDetails = (props: { query: GQLRequest, onClose: () => void }) 
     const { width, height } = useWindowSize()
     const onBottom = width < height
 
-    const [size, setSize] = useState<number | undefined>(undefined)
+    // Defaults to filling all but the query list's minimum size, so the list opens
+    // narrow (at its own minimum) and this panel takes up the rest.
+    const [size, setSize] = useState(() => (onBottom ? height : width) - MIN_SIDEBAR_SIZE)
     const cleanupDrag = useRef<(() => void) | undefined>(undefined)
 
     // A pixel size measured along one axis doesn't carry over when the panel
@@ -30,13 +32,12 @@ export const QueryDetails = (props: { query: GQLRequest, onClose: () => void }) 
     useEffect(() => {
         if (prevOnBottom.current !== onBottom) {
             prevOnBottom.current = onBottom
-            setSize(undefined)
+            setSize((onBottom ? height : width) - MIN_SIDEBAR_SIZE)
         }
-    }, [onBottom])
+    }, [onBottom, width, height])
 
     useEffect(() => {
         setSize(prev => {
-            if (prev === undefined) return prev
             const max = (onBottom ? height : width) - MIN_SIDEBAR_SIZE
             return prev > max ? Math.max(MIN_SIDEBAR_SIZE, max) : prev
         })
@@ -86,12 +87,16 @@ export const QueryDetails = (props: { query: GQLRequest, onClose: () => void }) 
 
     return <aside
         className={cls('query-details', { vertical: !onBottom, horizontal: onBottom })}
-        style={size === undefined ? undefined : (onBottom ? { height: size } : { width: size })}
+        style={onBottom ? { height: size } : { width: size }}
     >
         <div className="query-details__resize-handle" onMouseDown={startResize} />
         <div className="query-details__controls">
             <h1>{ title }</h1>
-            <Button onClick={props.onClose} icon={<CloseOutlined />} style={{ backgroundColor: '#111' }}>
+            <Button
+                onClick={props.onClose}
+                icon={<CloseOutlined style={{ fontSize: 11 }} />}
+                style={{ backgroundColor: '#111', width: 22, height: 22, minWidth: 0, padding: 0 }}
+            >
             </Button>
         </div>
         <div className="query-details__main">

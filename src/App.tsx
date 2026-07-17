@@ -19,7 +19,10 @@ export default (props: { gqlStore: GraphQLRequestStore }) => {
             return res
         }))
 
-        props.gqlStore.events.on('updateAll', ({ data }) => setQueries(data))
+        props.gqlStore.events.on('updateAll', ({ data }) => {
+            setQueries(data)
+            setSelectedQuery(undefined)
+        })
 
         return () => props.gqlStore.events.all.clear()
     }, [ props.gqlStore ])
