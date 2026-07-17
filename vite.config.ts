@@ -2,14 +2,15 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
     build: {
         outDir: 'dist/firefox',
-        sourcemap: 'inline' as const,
+        sourcemap: command === 'serve' ? ('inline' as const) : false,
         emptyOutDir: false,
-        minify: false,
+        minify: command === 'serve' ? false : true,
+        chunkSizeWarningLimit: 2000,
     },
     plugins: [
         react(),
     ]
-})
+}))
