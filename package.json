@@ -7,6 +7,8 @@
   "scripts": {
     "check": "tsc --noEmit -p .",
     "dev": "vite",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "build:firefox": "tsx build.ts firefox",
     "bundle:firefox": "web-ext build --source-dir ./dist/firefox --overwrite-dest",
     "start:firefox": "web-ext run --source-dir ./dist/firefox"
@@ -14,11 +16,13 @@
   "author": "lokmeinmatz <matze.kind@web.de>",
   "license": "ISC",
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/codemirror": "^5.60.17",
     "@types/firefox-webext-browser": "^143.0.0",
     "@types/har-format": "^1.2.16",
-    "@types/react": "^18.3.31",
-    "@types/react-dom": "^18.3.7",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "@types/webextension-polyfill": "^0.12.5",
     "@vitejs/plugin-react": "^6.0.3",
     "esbuild": "^0.28.1",
@@ -37,13 +41,13 @@
     "classnames": "^2.5.1",
     "codemirror": "^5.65.21",
     "codemirror-graphql": "^2.2.7",
-    "graphql": "^16.14.2",
+    "graphql": "^17.0.2",
     "mitt": "^3.0.1",
     "prettier": "^3.9.5",
     "rc-resize-observer": "^1.4.3",
-    "react": "^18.3.1",
+    "react": "^19.2.7",
     "react-codemirror2": "^9.0.1",
-    "react-dom": "^18.3.1",
+    "react-dom": "^19.2.7",
     "react-use": "^17.6.1",
     "zustand": "^5.0.14"
   }
