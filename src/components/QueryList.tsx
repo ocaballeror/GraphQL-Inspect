@@ -1,10 +1,19 @@
 import { Table } from "antd"
 import { ColumnsType } from "antd/lib/table"
-import { Kind } from "graphql"
 import { ReactNode, useEffect, useRef } from "react"
 import { GQLRequest } from "../gql"
 import { findOperation, fmtTime, getSizeStr } from "../util"
 import './QueryList.scss'
+
+// Thresholds (ms) separating quick/mid/slow queries for the speed indicator.
+const SLOW_MS = 1000
+const MID_MS = 300
+
+const speedClass = (time: number) => {
+    if (time >= SLOW_MS) return 'speed-slow'
+    if (time >= MID_MS) return 'speed-mid'
+    return 'speed-quick'
+}
 
 
 
@@ -36,12 +45,9 @@ export const QueryList = (props: {
         if (body) body.scrollTop = body.scrollHeight
     }, [props.queries])
 
-    const cols: ColumnsType<object> = [
+    const cols: ColumnsType<GQLRequest> = [
         {
-            title: <div className="query-list__header">
-                <span>Query Name</span>
-                {props.headerExtra}
-            </div>,
+            title: 'Query Name',
             dataIndex: ['data'],
             render: (data: GQLRequest['data']) => {
                 const op = findOperation(data)
@@ -65,18 +71,20 @@ export const QueryList = (props: {
     ]
 
     return <div className="query-list" ref={containerRef}>
-        <Table
+        {props.headerExtra && <div className="query-list__toolbar">{props.headerExtra}</div>}
+        <Table<GQLRequest>
             dataSource={props.queries}
             columns={cols}
             rowKey="id"
             pagination={false}
             sticky={true}
             scroll={{ y: '100%'}}
-            onRow={(record: any, idx) => {
-                console.log(record.id, props.selectedQuery?.id)
+            onRow={(record: GQLRequest) => {
+                const classes = [speedClass(record.time)]
+                if (record.id == props.selectedQuery?.id) classes.push('selected')
                 return {
                     onClick: () => props.onSelect(record),
-                    className: record.id == props.selectedQuery?.id ? 'selected' : ''
+                    className: classes.join(' ')
                 }
             }}
         />
