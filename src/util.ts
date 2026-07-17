@@ -9,7 +9,10 @@ export function isInWebExt(): boolean {
 }
 
 
-export const fmtTime = (time: Date) => `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')}:${time.getMilliseconds().toString().padStart(3, '0')}`
+export const fmtTime = (time: Date, opts?: { withMs?: boolean }) => {
+    const base = `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}:${time.getSeconds().toString().padStart(2, '0')}`
+    return opts?.withMs === false ? base : `${base}:${time.getMilliseconds().toString().padStart(3, '0')}`
+}
 
 export const findOperation = (data: GQLRequest['data']) => data.find(def => def.kind === Kind.OPERATION_DEFINITION)
 
