@@ -18,13 +18,13 @@ async function run() {
         console.log(browser)
         const tabId = browser.devtools.inspectedWindow.tabId
 
-        browser.devtools.network.onRequestFinished.addListener(async req => {
-            const data = await gql.parseNetworkRequest(req as NetRequest)
+        browser.devtools.network.onRequestFinished.addListener(async (req: NetRequest) => {
+            const data = await gql.parseNetworkRequest(req)
             console.log(data)
         })
 
-        browser.devtools.network.onNavigated.addListener(async url => {
-            const clear = await browser.storage.local.get(CLEAR_ON_NAV_KEY).then(d => d[CLEAR_ON_NAV_KEY] ?? true)
+        browser.devtools.network.onNavigated.addListener(async (url: string) => {
+            const clear = await browser.storage.local.get(CLEAR_ON_NAV_KEY).then((d: Record<string, unknown>) => d[CLEAR_ON_NAV_KEY] ?? true)
 
             console.log('navigated. clearAll: ' + clear)
             if (clear) {

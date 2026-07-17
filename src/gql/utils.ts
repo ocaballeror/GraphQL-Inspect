@@ -1,13 +1,17 @@
-import browser from 'webextension-polyfill'
 import { Entry as HarEntry, Param } from 'har-format'
 import { ArgumentNode, DocumentNode, Kind, parse, SelectionNode, SelectionSetNode, ValueNode } from 'graphql'
 import { GQLRequest } from '.';
 
-export type NetRequest = browser.devtools.network.Request & HarEntry
+/**
+ * `browser.devtools.network.onRequestFinished` hands us a HAR entry augmented
+ * with `getContent()` (see MDN devtools.network docs) - not modeled by
+ * @types/webextension-polyfill, so it's declared explicitly here.
+ */
+export type NetRequest = HarEntry & { getContent(): Promise<string> }
 
 
 function isContentType(entry: NetRequest, contentType: string) {
-  return entry.request.headers.some(({ name, value }: { name: string, value: string }) => {
+  return entry.request.headers.some(({ name, value }) => {
     return name.toLowerCase() === 'content-type' && value.split(';')[0].toLowerCase() === contentType.toLowerCase();
   });
 }
@@ -81,7 +85,7 @@ export async function parseEntry(entry: NetRequest): Promise<GQLRequest[]> {
     }
   }
 
-  const responseBody = await entry.getContent() as unknown as string
+  const responseBody = await entry.getContent()
 
   return parsedQueries.map((parsedQuery, i) => {
     return {

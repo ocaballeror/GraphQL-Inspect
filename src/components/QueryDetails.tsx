@@ -4,7 +4,7 @@ import { GQLRequest } from "../gql";
 import cls from 'classnames';
 import './QueryDetails.scss'
 import { useWindowSize } from "react-use";
-import ReactJson from 'react-json-view';
+import ReactJson from '@microlink/react-json-view';
 import { findOperation, fmtTime, getSizeStr } from "../util";
 import { useMemo } from "react"
 import {UnControlled as CodeMirror} from 'react-codemirror2'
