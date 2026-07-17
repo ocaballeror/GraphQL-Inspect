@@ -11,7 +11,7 @@
         flex: none;
         display: flex;
         justify-content: flex-start;
-        padding: 4px 8px;
+        padding: 2px 6px;
         background-color: #1d1d1d;
     }
 
@@ -55,4 +55,16 @@
             text-align: end;
         }
     }
+}
+
+// Rendered in a portal on document.body, so these live outside .query-list.
+// The extra `.ant-dropdown-menu-item`/`.anticon` qualifiers beat antd's own
+// CSS-in-JS rules, which are injected after this stylesheet and tie on specificity.
+.ant-dropdown-menu-item.query-list__context-menu-item {
+    padding: 10px 16px !important;
+    font-size: 15px !important;
+}
+
+.anticon.query-list__context-menu-icon {
+    font-size: 1.5em !important;
 }

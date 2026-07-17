@@ -1,6 +1,6 @@
 import { Kind } from 'graphql'
 import { useEffect, useState } from 'react'
-import { ConfigProvider, theme } from 'antd'
+import { App as AntApp, ConfigProvider, theme } from 'antd'
 import 'antd/dist/reset.css'
 import './App.scss'
 import { PanelBar } from './components/PanelBar'
@@ -26,17 +26,19 @@ export default (props: { gqlStore: GraphQLRequestStore }) => {
 
     return (
         <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { borderRadius: 0 } }}>
-            <main>
-                <QueryList
-                    queries={queries}
-                    onSelect={setSelectedQuery}
-                    selectedQuery={selectedQuery}
-                    headerExtra={<PanelBar onClear={() => props.gqlStore.clearAll()} />}
-                />
-                {
-                    selectedQuery && <QueryDetails query={selectedQuery} onClose={() => setSelectedQuery(undefined)} />
-                }
-            </main>
+            <AntApp>
+                <main>
+                    <QueryList
+                        queries={queries}
+                        onSelect={setSelectedQuery}
+                        selectedQuery={selectedQuery}
+                        headerExtra={<PanelBar onClear={() => props.gqlStore.clearAll()} />}
+                    />
+                    {
+                        selectedQuery && <QueryDetails query={selectedQuery} onClose={() => setSelectedQuery(undefined)} />
+                    }
+                </main>
+            </AntApp>
         </ConfigProvider>
     )
 }

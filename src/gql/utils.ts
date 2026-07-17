@@ -91,6 +91,7 @@ export async function parseEntry(entry: NetRequest): Promise<GQLRequest[]> {
     return {
       responseBody: JSON.parse(Array.isArray(responseBody) ? responseBody[i] : responseBody),
       url: entry.request.url,
+      request: entry.request,
       response: entry.response,
       time: entry.time,
       timings: entry.timings,

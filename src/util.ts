@@ -1,5 +1,5 @@
 import { Kind } from "graphql";
-import { Entry } from "har-format";
+import { Entry, PostData } from "har-format";
 import { create } from "zustand";
 import { GQLRequest } from "./gql";
 
@@ -21,6 +21,38 @@ export const findOperation = (data: GQLRequest['data']) => data.find(def => def.
  */
 export const getSizeStr = (res: Entry['response']) => {
     return `${(res.content.size / 1024).toFixed(1)}kB`
+}
+
+// curl doesn't accept HTTP/2 pseudo-headers, and computes content-length/host itself
+const CURL_SKIP_HEADERS = new Set(['content-length', 'host'])
+
+const shellQuote = (value: string) => `'${value.replace(/'/g, `'\\''`)}'`
+
+const requestBodyText = (postData?: PostData) => {
+    if (!postData) return undefined
+    if (postData.text !== undefined) return postData.text
+    return postData.params
+        ?.map(p => `${encodeURIComponent(p.name)}=${encodeURIComponent(p.value ?? '')}`)
+        .join('&')
+}
+
+export const buildCurlCommand = (req: GQLRequest) => {
+    const { request } = req
+    const parts = [`curl ${shellQuote(request.url)}`]
+
+    if (request.method && request.method.toUpperCase() !== 'GET') {
+        parts.push(`-X ${request.method}`)
+    }
+
+    for (const header of request.headers) {
+        if (CURL_SKIP_HEADERS.has(header.name.toLowerCase()) || header.name.startsWith(':')) continue
+        parts.push(`-H ${shellQuote(`${header.name}: ${header.value}`)}`)
+    }
+
+    const body = requestBodyText(request.postData)
+    if (body) parts.push(`--data-raw ${shellQuote(body)}`)
+
+    return parts.join(' \\\n  ')
 }
 
 export type ExtMessage = ExtMessageBase & ExtMessageInstance

@@ -1,4 +1,4 @@
-import { Response, Timings } from "har-format";
+import { Request, Response, Timings } from "har-format";
 import mitt from "mitt";
 import { isGraphQL, NetRequest, ParsedQuery, parseEntry } from "./utils";
 
@@ -7,6 +7,7 @@ import { isGraphQL, NetRequest, ParsedQuery, parseEntry } from "./utils";
 export interface GQLRequest extends ParsedQuery {
   responseBody: any,
   url: string,
+  request: Request,
   response: Response,
   timings: Timings,
   time: number,
