@@ -7,7 +7,7 @@
         "128": "icons/icon.png"
     },
     "author": "Matthias Kind",
-    "homepage_url": "https://github.com/lokmeinmatz/GraphQL-Inspect",
+    "homepage_url": "https://github.com/ocaballeror/GraphQL-Inspect",
     "devtools_page": "devtools.html",
     "permissions": [
         "storage"
