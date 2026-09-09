@@ -1,10 +1,10 @@
 import { App as AntApp, Dropdown, Table } from "antd"
 import type { MenuProps } from "antd"
 import { ColumnsType } from "antd/lib/table"
-import { CopyOutlined } from "@ant-design/icons"
+import { CopyOutlined, RedoOutlined } from "@ant-design/icons"
 import { ReactNode, useEffect, useRef, useState } from "react"
 import { GQLRequest } from "../gql"
-import { buildCurlCommand, findOperation, getSizeStr } from "../util"
+import { buildCurlCommand, findOperation, getSizeStr, retryRequest } from "../util"
 import './QueryList.scss'
 
 // Thresholds (ms) separating quick/mid/slow queries for the speed indicator.
@@ -20,6 +20,8 @@ const speedClass = (time: number) => {
 
 
 const CONTEXT_MENU_ITEMS: MenuProps['items'] = [
+    { key: 'retry', label: 'Retry', icon: <RedoOutlined /> },
+    { type: 'divider' },
     { key: 'copy-query', label: 'Copy query', icon: <CopyOutlined /> },
     { key: 'copy-response', label: 'Copy response', icon: <CopyOutlined /> },
     { key: 'copy-curl', label: 'Copy as curl', icon: <CopyOutlined /> },
@@ -83,6 +85,11 @@ export const QueryList = (props: {
         if (key === 'copy-query') copyToClipboard(record.bareQuery)
         else if (key === 'copy-response') copyToClipboard(JSON.stringify(record.responseBody, null, 2))
         else if (key === 'copy-curl') copyToClipboard(buildCurlCommand(record))
+        else if (key === 'retry') {
+            retryRequest(record)
+                .then(() => message.success('Request retried'))
+                .catch((e) => message.error(`Retry failed: ${e instanceof Error ? e.message : e}`))
+        }
     }
 
     const cols: ColumnsType<GQLRequest> = [

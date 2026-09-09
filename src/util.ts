@@ -57,6 +57,68 @@ export const buildCurlCommand = (req: GQLRequest) => {
     return parts.join(' \\\n  ')
 }
 
+// Headers fetch() refuses to set explicitly (forbidden request headers per the Fetch spec)
+// plus HTTP/2 pseudo-headers. Cookie is skipped deliberately: a retry should pick up whatever
+// cookies/session are current in the browser, not the ones captured when the query first ran.
+const RETRY_SKIP_HEADERS = new Set([
+    'accept-charset', 'accept-encoding', 'access-control-request-headers',
+    'access-control-request-method', 'connection', 'content-length', 'cookie', 'cookie2',
+    'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'set-cookie',
+    'te', 'trailer', 'transfer-encoding', 'upgrade', 'via'
+])
+
+const isForbiddenRequestHeader = (name: string) => {
+    const lower = name.toLowerCase()
+    return RETRY_SKIP_HEADERS.has(lower) || lower.startsWith(':') || lower.startsWith('proxy-') || lower.startsWith('sec-')
+}
+
+const buildRetryInit = (request: GQLRequest['request']): RequestInit => {
+    const headers: Record<string, string> = {}
+    for (const header of request.headers) {
+        if (isForbiddenRequestHeader(header.name)) continue
+        headers[header.name] = header.value
+    }
+    return {
+        method: request.method,
+        headers,
+        body: requestBodyText(request.postData),
+        credentials: 'include'
+    }
+}
+
+/**
+ * Replays a captured request with its original URL, method, headers and body, but evaluated
+ * inside the inspected page itself so it picks up whatever cookies/session are current there
+ * - as if the user had triggered the original action again.
+ */
+export const retryRequest = async (req: GQLRequest): Promise<void> => {
+    const init = buildRetryInit(req.request)
+
+    if (!isInWebExt()) {
+        await fetch(req.request.url, init)
+        return
+    }
+
+    const browser = (await import('webextension-polyfill')).default
+    const expr = `(async () => {
+        try {
+            const res = await fetch(${JSON.stringify(req.request.url)}, ${JSON.stringify(init)});
+            return { ok: res.ok, status: res.status };
+        } catch (e) {
+            return { ok: false, error: String(e) };
+        }
+    })()`
+
+    const [result, exceptionInfo] = await browser.devtools.inspectedWindow.eval(expr)
+    if (exceptionInfo?.isError || exceptionInfo?.isException) {
+        throw new Error(exceptionInfo.value || exceptionInfo.description || 'Retry failed')
+    }
+    const typed = result as { ok: boolean, status?: number, error?: string } | undefined
+    if (!typed?.ok) {
+        throw new Error(typed?.error ?? `Request failed${typed?.status ? ` with status ${typed.status}` : ''}`)
+    }
+}
+
 export type ExtMessage = ExtMessageBase & ExtMessageInstance
 
 type ExtMessageInstance = ExtMessagePing | ExtMessageUpdatedRequests | ExtMessageClearAll | ExtMessageUpdateAll
