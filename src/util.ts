@@ -89,34 +89,51 @@ const buildRetryInit = (request: GQLRequest['request']): RequestInit => {
 /**
  * Replays a captured request with its original URL, method, headers and body, but evaluated
  * inside the inspected page itself so it picks up whatever cookies/session are current there
- * - as if the user had triggered the original action again.
+ * - as if the user had triggered the original action again. Since it's a real fetch from the
+ * page, it shows up in the request log on its own via the normal network-capture path.
  */
 export const retryRequest = async (req: GQLRequest): Promise<void> => {
     const init = buildRetryInit(req.request)
 
     if (!isInWebExt()) {
-        await fetch(req.request.url, init)
+        const res = await fetch(req.request.url, init)
+        if (!res.ok) throw new Error(`Request failed with status ${res.status}`)
         return
     }
 
     const browser = (await import('webextension-polyfill')).default
-    const expr = `(async () => {
-        try {
-            const res = await fetch(${JSON.stringify(req.request.url)}, ${JSON.stringify(init)});
-            return { ok: res.ok, status: res.status };
-        } catch (e) {
-            return { ok: false, error: String(e) };
+    const evalInPage = async (expr: string) => {
+        const [result, exceptionInfo] = await browser.devtools.inspectedWindow.eval(expr)
+        if (exceptionInfo?.isError || exceptionInfo?.isException) {
+            throw new Error(exceptionInfo.value || exceptionInfo.description || 'Retry failed')
         }
-    })()`
+        return result
+    }
 
-    const [result, exceptionInfo] = await browser.devtools.inspectedWindow.eval(expr)
-    if (exceptionInfo?.isError || exceptionInfo?.isException) {
-        throw new Error(exceptionInfo.value || exceptionInfo.description || 'Retry failed')
+    // inspectedWindow.eval() evaluates the expression to a value synchronously - it does not
+    // await a returned Promise - so an async IIFE here would always hand back its (empty)
+    // pending Promise instead of the eventual result. Kick off the fetch fire-and-forget,
+    // stash its outcome on `window`, and poll for it instead.
+    const id = `__gqlInspectRetry${Math.random().toString(36).slice(2)}`
+    const idExpr = JSON.stringify(id)
+    await evalInPage(`(() => {
+        fetch(${JSON.stringify(req.request.url)}, ${JSON.stringify(init)})
+            .then((res) => { window[${idExpr}] = { ok: res.ok, status: res.status }; })
+            .catch((e) => { window[${idExpr}] = { ok: false, error: String(e) }; });
+        return true;
+    })()`)
+
+    const deadline = Date.now() + 10000
+    while (Date.now() < deadline) {
+        await new Promise(r => setTimeout(r, 150))
+        const state = await evalInPage(`window[${idExpr}]`) as { ok: boolean, status?: number, error?: string } | undefined
+        if (state) {
+            await evalInPage(`delete window[${idExpr}]`)
+            if (!state.ok) throw new Error(state.error ?? `Request failed with status ${state.status}`)
+            return
+        }
     }
-    const typed = result as { ok: boolean, status?: number, error?: string } | undefined
-    if (!typed?.ok) {
-        throw new Error(typed?.error ?? `Request failed${typed?.status ? ` with status ${typed.status}` : ''}`)
-    }
+    throw new Error('Retry timed out waiting for a response')
 }
 
 export type ExtMessage = ExtMessageBase & ExtMessageInstance
