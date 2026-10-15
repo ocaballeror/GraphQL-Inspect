@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "GraphQL-Inspect",
     "description": "Inspect GraphQL requests and response data",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "icons": {
         "128": "icons/icon.png"
     },
